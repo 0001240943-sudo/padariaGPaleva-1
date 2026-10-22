@@ -11,6 +11,7 @@ const App = {
   temp: 25,
   damper: 100,
   fornada: null,
+  audioContext: null,
   produtos: DB.load('tf_produtos', [
     { id: 1, nome: 'Pão francês', cat: 'Pães', min: 200, max: 230, tempo: 18 },
     { id: 2, nome: 'Pão integral', cat: 'Pães', min: 190, max: 220, tempo: 25 },
@@ -24,6 +25,7 @@ const App = {
     this.renderProdutos();
     this.renderHistorico();
     this.popularSelect();
+    this.updateUI();
     if (this.fornada) this.startSimulacao();
   },
 
@@ -73,11 +75,13 @@ const App = {
   renderProdutos() {
     const el = document.getElementById('produtos-lista');
     if (!el) return;
-    const imagens = {
-      'Pão francês': 'assets/pão francês.jpg',
-      'Pão integral': 'assets/pão integral.jpg',
-      'Bolo de cenoura': 'assets/bolo de cenoura.jpg'
-    };
+    const imagensTemplate = document.getElementById('imagens-produtos');
+    const imagens = imagensTemplate
+      ? Array.from(imagensTemplate.content.querySelectorAll('img')).reduce((mapa, imagem) => {
+        mapa[imagem.dataset.produto] = imagem.getAttribute('src');
+        return mapa;
+      }, {})
+      : {};
     el.innerHTML = this.produtos.map(p => `
       <div class="product-card">
         ${imagens[p.nome] ? `<img src="${imagens[p.nome]}" alt="${p.nome}">` : ''}
@@ -121,10 +125,12 @@ const App = {
       id: Date.now(),
       produto: p.nome,
       min: p.min, max: p.max, tempo: p.tempo,
+      alvoTemp: Math.round((p.min + p.max) / 2),
       inicio: Date.now(),
       logs: [],
       damperLog: []
     };
+    this.prepararAudio();
     this.startSimulacao();
     this.updateUI();
   },
@@ -138,6 +144,9 @@ const App = {
     this.historico.push(this.fornada);
     DB.save('tf_historico', this.historico);
     this.fornada = null;
+    clearInterval(this._sim);
+    const sel = document.getElementById('sel-produto');
+    if (sel) sel.value = '';
     this.renderHistorico();
     this.exportJSON();
     this.updateUI();
@@ -152,18 +161,66 @@ const App = {
 
   tick() {
     if (!this.fornada) return;
-    const alvo = (this.fornada.min + this.fornada.max) / 2;
+    if (this.fornada.concluida) return;
+
+    const tempoRestante = this.fornada.tempo * 60 * 1000 - (Date.now() - this.fornada.inicio);
+    if (tempoRestante <= 0) {
+      this.fornada.concluida = true;
+      clearInterval(this._sim);
+      this.updateUI();
+      this.buzz();
+      const modal = document.getElementById('modal-fim');
+      if (modal) modal.classList.add('show');
+      return;
+    }
+
+    const alvo = this.fornada.alvoTemp;
     const diff = alvo - this.temp;
     this.temp += diff * 0.15 + (Math.random() - 0.5) * 6;
     this.temp = Math.max(20, Math.min(300, this.temp));
 
-    // Damper: abre se frio, fecha se quente (mín 20%)
-    if (diff > 10) { this.damper = Math.min(100, this.damper + 15); this.logDamper('abrir'); }
-    else if (diff < -10) { this.damper = Math.max(20, this.damper - 15); this.logDamper('fechar'); }
-
     this.fornada.logs.push({ t: Date.now(), temp: this.temp, damper: this.damper });
     this.updateUI();
     this.checkAlerta();
+  },
+
+  prepararAudio() {
+    try {
+      if (this.audioContext && this.audioContext.state !== 'closed') {
+        this.audioContext.resume().catch(error => console.error('Não foi possível ativar o áudio:', error));
+        return;
+      }
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) throw new Error('Áudio não é suportado neste navegador.');
+      this.audioContext = new AudioContext();
+      this.audioContext.resume().catch(error => console.error('Não foi possível ativar o áudio:', error));
+    } catch (error) {
+      console.error('Não foi possível preparar o aviso sonoro:', error);
+    }
+  },
+
+  ajustarTemperatura(valor) {
+    if (!this.fornada) return;
+    this.fornada.alvoTemp = Number(valor);
+    const label = document.getElementById('temp-alvo-label');
+    if (label) label.textContent = `Temperatura desejada: ${this.fornada.alvoTemp}°C`;
+  },
+
+  ajustarDamper(valor) {
+    if (!this.fornada) return;
+    const anterior = this.damper;
+    this.damper = Number(valor);
+    if (anterior !== this.damper) this.logDamper(this.damper > anterior ? 'abrir' : 'fechar');
+    this.updateUI();
+  },
+
+  ajustarTempo(valor) {
+    if (!this.fornada) return;
+    const minutos = Number(valor);
+    if (!Number.isFinite(minutos) || minutos < 1 || minutos > 180) return;
+    this.fornada.tempo = minutos;
+    this.tick();
+    this.updateUI();
   },
 
   logDamper(acao) {
@@ -191,12 +248,38 @@ const App = {
 
   buzz() {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = this.audioContext;
+      if (!ctx) throw new Error('Áudio indisponível para reproduzir o aviso.');
+      if (ctx.state === 'suspended') {
+        ctx.resume().then(() => this.tocarAviso(ctx)).catch(error => {
+          console.error('Não foi possível reproduzir o aviso sonoro:', error);
+        });
+        return;
+      }
+      this.tocarAviso(ctx);
+    } catch (error) {
+      console.error('Não foi possível reproduzir o aviso sonoro:', error);
+    }
+  },
+
+  tocarAviso(ctx) {
+    try {
       const o = ctx.createOscillator();
-      o.connect(ctx.destination);
-      o.frequency.value = 800;
-      o.start(); o.stop(ctx.currentTime + 0.3);
-    } catch {}
+      const volume = ctx.createGain();
+      o.connect(volume);
+      volume.connect(ctx.destination);
+      o.frequency.value = 880;
+      volume.gain.setValueAtTime(0, ctx.currentTime);
+      for (let i = 0; i < 3; i++) {
+        const inicio = ctx.currentTime + i * 0.35;
+        volume.gain.setValueAtTime(0.2, inicio);
+        volume.gain.setValueAtTime(0, inicio + 0.18);
+      }
+      o.start();
+      o.stop(ctx.currentTime + 0.9);
+    } catch (error) {
+      console.error('Não foi possível reproduzir o aviso sonoro:', error);
+    }
   },
 
   updateUI() {
@@ -208,14 +291,47 @@ const App = {
     if (d) d.textContent = this.damper + '%';
     if (df) df.style.width = this.damper + '%';
 
+    const tempControl = document.getElementById('temp-alvo');
+    const tempLabel = document.getElementById('temp-alvo-label');
+    const damperControl = document.getElementById('damper-control');
+    const timeControl = document.getElementById('tempo-fornada');
+    if (tempControl) {
+      tempControl.disabled = !this.fornada || this.fornada.concluida;
+      if (this.fornada) tempControl.value = this.fornada.alvoTemp;
+    }
+    if (tempLabel) {
+      tempLabel.textContent = this.fornada
+        ? `Temperatura desejada: ${this.fornada.alvoTemp}°C (faixa: ${this.fornada.min}–${this.fornada.max}°C)`
+        : 'Inicie uma fornada para ajustar';
+    }
+    if (damperControl) {
+      damperControl.disabled = !this.fornada || this.fornada.concluida;
+      damperControl.value = this.damper;
+    }
+    if (timeControl) {
+      timeControl.disabled = !this.fornada || this.fornada.concluida;
+      if (this.fornada) timeControl.value = this.fornada.tempo;
+    }
+
     const bt = document.getElementById('baking-time');
-    if (bt && this.fornada) {
-      const s = Math.floor((Date.now() - this.fornada.inicio) / 1000);
-      bt.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    if (bt) {
+      const status = document.getElementById('baking-status');
+      if (this.fornada) {
+        const restante = Math.max(0, Math.ceil((this.fornada.tempo * 60 * 1000 - (Date.now() - this.fornada.inicio)) / 1000));
+        bt.textContent = `${String(Math.floor(restante / 60)).padStart(2, '0')}:${String(restante % 60).padStart(2, '0')}`;
+        if (status) status.textContent = this.fornada.concluida ? 'Tempo concluído! Finalize a fornada.' : 'Tempo restante';
+      } else {
+        bt.textContent = '00:00';
+        if (status) status.textContent = 'Sem fornada em andamento';
+      }
     }
 
     const pn = document.getElementById('prod-name');
     if (pn) pn.textContent = this.fornada ? this.fornada.produto : 'Nenhuma fornada ativa';
+    const finishButton = document.getElementById('btn-finalizar');
+    if (finishButton) finishButton.disabled = !this.fornada;
+    const productSelect = document.getElementById('sel-produto');
+    if (productSelect) productSelect.disabled = !!this.fornada;
   },
 
   renderHistorico() {
@@ -290,6 +406,15 @@ const App = {
     // Iniciar fornada
     const sel = $('sel-produto');
     if (sel) sel.onchange = e => { if (e.target.value) this.iniciarFornada(e.target.value); };
+
+    const tempControl = $('temp-alvo');
+    if (tempControl) tempControl.oninput = e => this.ajustarTemperatura(e.target.value);
+
+    const damperControl = $('damper-control');
+    if (damperControl) damperControl.oninput = e => this.ajustarDamper(e.target.value);
+
+    const timeControl = $('tempo-fornada');
+    if (timeControl) timeControl.onchange = e => this.ajustarTempo(e.target.value);
 
     // Finalizar fornada
     const ff = $('fim-form');

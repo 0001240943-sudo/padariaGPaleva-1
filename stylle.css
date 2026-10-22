@@ -206,6 +206,9 @@ body {
 .card-label { font-size: 0.8rem; color: #6B4E3D; text-transform: uppercase; letter-spacing: 0.5px; }
 .card-value { font-size: 2rem; font-weight: 700; margin: 0.3rem 0; }
 .card-sub { font-size: 0.85rem; color: #6B4E3D; }
+.control-label { display: block; margin-top: 1rem; font-size: 0.8rem; color: #6B4E3D; }
+.range-control { width: 100%; margin-top: 0.6rem; accent-color: var(--cor1); cursor: pointer; }
+.range-control:disabled { cursor: not-allowed; opacity: 0.5; }
 
 .card-icon {
   width: 44px; height: 44px;
