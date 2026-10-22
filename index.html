@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel | ThermoFire</title>
+  <link rel="stylesheet" href="stylle.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">🔥</div>
+        <div><h2>ThermoFire</h2><small>PADARIA ALEVA BARROSO</small></div>
+      </div>
+      <nav>
+        <a href="index.html" class="active"><span class="icon"></span>Painel</a>
+        <a href="produtos.html"><span class="icon">▦</span>Produtos</a>
+        <a href="alertas.html"><span class="icon">♧</span>Alertas</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="btn-logout"> Sair da conta</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Painel de operação</h1>
+          <p>Quinta-feira · Rotina de produção</p>
+        </div>
+        <div class="user-badge">
+          <div class="user-avatar">AB</div>
+          <div><strong>Aleva Barroso</strong><br><small>Operação</small></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-icon laranja">🌡️</div>
+          <div class="card-label">Temperatura atual</div>
+          <div class="card-value" id="cur-temp">25°C</div>
+          <div class="card-sub">Faixa do produto: 200–230 °C</div>
+          <div class="status verde">
+            <div class="led verde" id="led"></div>
+            <span id="status-txt">Aguardando fornada</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon azul">💨</div>
+          <div class="card-label">Damper (entrada de ar)</div>
+          <div class="card-value" id="damper-val">100%</div>
+          <div class="damper-bar"><div class="damper-fill" id="damper-fill" style="width:100%"></div></div>
+          <div class="damper-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon roxo">⏱️</div>
+          <div class="card-label">Fornada em andamento</div>
+          <div class="card-value" id="baking-time">00:00</div>
+          <div class="card-sub" id="prod-name">Nenhuma fornada ativa</div>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <h3>Curva de temperatura (simulação)</h3>
+        <div class="chart">
+          <svg viewBox="0 0 800 220" preserveAspectRatio="none">
+            <line x1="40" y1="20" x2="40" y2="200" stroke="#ddd"/>
+            <line x1="40" y1="200" x2="780" y2="200" stroke="#ddd"/>
+            <text x="10" y="25" font-size="11" fill="#999">260</text>
+            <text x="10" y="115" font-size="11" fill="#999">200</text>
+            <text x="10" y="205" font-size="11" fill="#999">180</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="baking-box">
+        <h3>Preparar fornada</h3>
+        <div class="baking-controls">
+          <select id="sel-produto"></select>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('modal-fim').classList.add('show')">Finalizar</button>
+        </div>
+        <p style="margin-top:1rem;font-size:0.85rem;opacity:0.8">
+          ℹ Ações demonstrativas. Nenhum equipamento físico é acionado.
+        </p>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3>Últimas fornadas</h3>
+          <button class="btn btn-outline btn-sm" id="btn-export">📥 Exportar JSON</button>
+        </div>
+        <div id="hist-lista"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal finalizar fornada -->
+  <div class="modal-bg" id="modal-fim">
+    <div class="modal">
+      <h3>Como ficou esta fornada?</h3>
+      <form id="fim-form">
+        <div class="field">
+          <label>Avaliação</label>
+          <select id="fim-qual" required>
+            <option value="ótimo">Ótimo</option>
+            <option value="aceitável">Aceitável</option>
+            <option value="fora do ponto">Fora do ponto</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Observações</label>
+          <textarea id="fim-obs" rows="3"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-fim').classList.remove('show')">Cancelar</button>
+          <button class="btn btn-primary">Salvar resultado</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

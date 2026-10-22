@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Criar conta | ThermoFire</title>
+  <link rel="stylesheet" href="stylle.css">
+</head>
+<body>
+  <div class="auth">
+    <div class="auth-left">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"></div>
+        <div><h2>ThermoFire</h2><small>EQUIPE ALEVA BARROSO</small></div>
+      </div>
+      <h1>Uma rotina bem cuidada<br><span>começa por aqui.</span></h1>
+      <p>Cadastre os profissionais que precisam acompanhar e registrar as fornadas.</p>
+    </div>
+    <div class="auth-right">
+      <form class="auth-form" id="cadastro-form">
+        <h2>Criar uma conta</h2>
+        <p>Informe os dados para acessar o sistema</p>
+        <div class="field">
+          <label>Nome completo</label>
+          <input type="text" id="cad-nome" placeholder="Seu nome" required>
+        </div>
+        <div class="field">
+          <label>E-mail</label>
+          <input type="email" id="cad-email" placeholder="voce@padaria.com.br" required>
+        </div>
+        <div class="field">
+          <label>Senha (mín. 10 caracteres)</label>
+          <input type="password" id="cad-senha" placeholder="••••••••••" minlength="10" required>
+        </div>
+        <button class="btn btn-primary">Criar conta →</button>
+        <div class="auth-footer">
+          <p>Já tem acesso? <a href="login.html">Voltar ao login</a></p>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

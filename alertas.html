@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Alertas | ThermoFire</title>
+  <link rel="stylesheet" href="stylle.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">🔥</div>
+        <div><h2>ThermoFire</h2><small>PADARIA ALEVA BARROSO</small></div>
+      </div>
+      <nav>
+        <a href="index.html"><span class="icon">◉</span>Painel</a>
+        <a href="produtos.html"><span class="icon">▦</span>Produtos</a>
+        <a href="alertas.html" class="active"><span class="icon">♧</span>Alertas</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="btn-logout">↪ Sair da conta</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Central de alertas</h1>
+          <p>Mensagens de atenção e orientações do sistema</p>
+        </div>
+      </div>
+
+      <div class="alert-item warn">
+        <h4>⚠ Atenção operacional</h4>
+        <p>Avisos reais exigem sensores e controlador integrados.</p>
+      </div>
+
+      <div class="alert-item err">
+        <h4> Sensor de temperatura não conectado</h4>
+        <p>O sistema está usando uma temperatura simulada. Instale e valide a cadeia de medição antes de usar no processo produtivo.</p>
+      </div>
+
+      <div class="alert-item warn">
+        <h4>🟡 Damper em modo ilustrativo</h4>
+        <p>A posição mostrada no painel é um valor calculado na simulação. Nenhum motor ou entrada de ar está sendo comandado.</p>
+      </div>
+
+      <div class="alert-item ok">
+        <h4>✅ Registro local habilitado</h4>
+        <p>Cadastros de produtos e resultados de fornadas são guardados em localStorage e exportados em JSON.</p>
+      </div>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Produtos | ThermoFire</title>
+  <link rel="stylesheet" href="stylle.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">🔥</div>
+        <div><h2>ThermoFire</h2><small>PADARIA ALEVA BARROSO</small></div>
+      </div>
+      <nav>
+        <a href="index.html"><span class="icon">◉</span>Painel</a>
+        <a href="produtos.html" class="active"><span class="icon">▦</span>Produtos</a>
+        <a href="alertas.html"><span class="icon">♧</span>Alertas</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="btn-logout">↪ Sair da conta</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Catálogo de produtos</h1>
+          <p>Organize as referências de assamento da equipe</p>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('modal-add').classList.add('show')">+ Adicionar produto</button>
+      </div>
+
+      <div class="products-grid" id="produtos-lista"></div>
+    </main>
+  </div>
+
+  <!-- Modal adicionar -->
+  <div class="modal-bg" id="modal-add">
+    <div class="modal">
+      <h3>Adicionar produto</h3>
+      <form id="prod-form">
+        <div class="field"><label>Nome *</label><input id="prod-nome" placeholder="Ex: Pão francês" required></div>
+        <div class="field">
+          <label>Categoria</label>
+          <select id="prod-cat">
+            <option>Pães</option><option>Bolos</option><option>Biscoitos</option><option>Salgados</option>
+          </select>
+        </div>
+        <div class="field"><label>Temp. mínima (°C) *</label><input type="number" id="prod-min" required></div>
+        <div class="field"><label>Temp. máxima (°C) *</label><input type="number" id="prod-max" required></div>
+        <div class="field"><label>Tempo (min) *</label><input type="number" id="prod-tempo" required></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-add').classList.remove('show')">Cancelar</button>
+          <button class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal editar -->
+  <div class="modal-bg" id="modal-edit">
+    <div class="modal">
+      <h3>Editar produto</h3>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id">
+        <div class="field"><label>Nome</label><input id="edit-nome" required></div>
+        <div class="field">
+          <label>Categoria</label>
+          <select id="edit-cat">
+            <option>Pães</option><option>Bolos</option><option>Biscoitos</option><option>Salgados</option>
+          </select>
+        </div>
+        <div class="field"><label>Temp. mínima</label><input type="number" id="edit-min" required></div>
+        <div class="field"><label>Temp. máxima</label><input type="number" id="edit-max" required></div>
+        <div class="field"><label>Tempo (min)</label><input type="number" id="edit-tempo" required></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-edit').classList.remove('show')">Cancelar</button>
+          <button class="btn btn-primary">Salvar alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
